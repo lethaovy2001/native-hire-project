@@ -28,7 +28,7 @@ public class Contacts extends Plugin {
 
     @PluginMethod()
     public void getFilteredContacts(PluginCall call) {
-        String filter = "DISPLAY_NAME = '" + call.getString("firstName") + "'";
+        String filter = "DISPLAY_NAME LIKE '%" + call.getString("firstName") + "%'";
         getContacts(call, filter);
     }
 
@@ -37,7 +37,7 @@ public class Contacts extends Plugin {
         if (!hasPermission(Manifest.permission.READ_CONTACTS) ||
                 !hasPermission(Manifest.permission.WRITE_CONTACTS)) {
             saveCall(call);
-            pluginRequestPermissions(new String[] {
+            pluginRequestPermissions(new String[]{
                     Manifest.permission.READ_CONTACTS,
                     Manifest.permission.WRITE_CONTACTS}, GET_ALL_REQUEST);
         }
@@ -83,7 +83,7 @@ public class Contacts extends Plugin {
                 ContactsContract.CommonDataKinds.Email.CONTENT_URI,
                 null,
                 ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?",
-                new String[] {id},
+                new String[]{id},
                 null);
         while (emailCursor.moveToNext()) {
             String email = emailCursor.getString(emailCursor.getColumnIndex(emailKind));
