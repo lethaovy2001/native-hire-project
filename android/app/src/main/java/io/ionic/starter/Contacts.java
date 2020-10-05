@@ -5,7 +5,6 @@ import android.content.pm.PackageManager;
 import android.provider.ContactsContract;
 import android.content.ContentResolver;
 import android.database.Cursor;
-import android.util.Log;
 
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
@@ -14,7 +13,6 @@ import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 
-import java.util.Arrays;
 import java.util.ArrayList;
 
 @NativePlugin(
@@ -33,17 +31,23 @@ public class Contacts extends Plugin {
         String filter = "DISPLAY_NAME = '" + call.getString("firstName") + "'";
         getContacts(call, filter);
     }
-
-    protected void getContacts(PluginCall call, String filter) {
+    
+    protected boolean isAuthorized(PluginCall call) {
         if (!hasPermission(Manifest.permission.READ_CONTACTS) ||
                 !hasPermission(Manifest.permission.WRITE_CONTACTS)) {
             saveCall(call);
             pluginRequestPermissions(new String[] {
                     Manifest.permission.READ_CONTACTS,
                     Manifest.permission.WRITE_CONTACTS}, GET_ALL_REQUEST);
+            return false;
+        }
+        return true;
+    }
+
+    protected void getContacts(PluginCall call, String filter) {
+        if (!isAuthorized(call)) {
             return;
         }
-
         ContentResolver contentResolver = this.getContext().getContentResolver();
         JSArray contacts = new JSArray();
         Cursor cursor = contentResolver.query(
@@ -109,24 +113,6 @@ public class Contacts extends Plugin {
         return phoneNumbers;
     }
 
-    protected JSArray getAllMocked() {
-        JSArray contacts = new JSArray();
-        JSObject eltonJson = new JSObject();
-        eltonJson.put("firstName", "Elton");
-        eltonJson.put("lastName", "Json");
-        eltonJson.put("phoneNumbers", new JSArray(Arrays.asList("2135551111")));
-        eltonJson.put("emailAddresses", new JSArray(Arrays.asList("elton@eltonjohn.com")));
-        contacts.put(eltonJson);
-        JSObject freddieMercury = new JSObject();
-        freddieMercury.put("firstName", "Freddie");
-        freddieMercury.put("lastName", "Mercury");
-        freddieMercury.put("phoneNumbers", new JSArray());
-        freddieMercury.put("emailAddresses", new JSArray());
-        contacts.put(freddieMercury);
-
-        return contacts;
-    }
-
     @Override
     protected void handleRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.handleRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -142,7 +128,6 @@ public class Contacts extends Plugin {
                 return;
             }
         }
-
         if (requestCode == GET_ALL_REQUEST) {
             this.getAll(savedCall);
         }
