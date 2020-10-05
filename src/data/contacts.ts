@@ -12,6 +12,7 @@ export interface Contact {
 
 export const getContacts = async (): Promise<Contact[]> => {
   try {
+    const auth = await Contacts.isAuthorized();
     const result = await Contacts.getAll();
     return result.contacts;
   } catch (e) {

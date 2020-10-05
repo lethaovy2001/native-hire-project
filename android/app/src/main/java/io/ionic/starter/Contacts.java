@@ -31,23 +31,20 @@ public class Contacts extends Plugin {
         String filter = "DISPLAY_NAME = '" + call.getString("firstName") + "'";
         getContacts(call, filter);
     }
-    
-    protected boolean isAuthorized(PluginCall call) {
+
+    @PluginMethod()
+    public void isAuthorized(PluginCall call) {
         if (!hasPermission(Manifest.permission.READ_CONTACTS) ||
                 !hasPermission(Manifest.permission.WRITE_CONTACTS)) {
             saveCall(call);
             pluginRequestPermissions(new String[] {
                     Manifest.permission.READ_CONTACTS,
                     Manifest.permission.WRITE_CONTACTS}, GET_ALL_REQUEST);
-            return false;
         }
-        return true;
+        call.success();
     }
 
     protected void getContacts(PluginCall call, String filter) {
-        if (!isAuthorized(call)) {
-            return;
-        }
         ContentResolver contentResolver = this.getContext().getContentResolver();
         JSArray contacts = new JSArray();
         Cursor cursor = contentResolver.query(
@@ -129,6 +126,7 @@ public class Contacts extends Plugin {
             }
         }
         if (requestCode == GET_ALL_REQUEST) {
+            savedCall.success();
             this.getAll(savedCall);
         }
     }
