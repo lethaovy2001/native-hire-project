@@ -14,45 +14,41 @@ public class Contacts : CAPPlugin {
     
     // MARK: - Plugin Methods
     @objc func getAll(_ call: CAPPluginCall) {
-        contactStore.requestAccess(for: .contacts) { granted, error in
-            if granted {
-                do {
-                    let request = CNContactFetchRequest(keysToFetch: self.keysToFetch)
-                    try self.contactStore.enumerateContacts(with: request) { contact, stop in
-                        self.addToListOfContacts(contact: contact)
-                    }
-                    call.success([
-                        "contacts": self.contacts
-                    ])
-                } catch {
-                    call.reject("Error fetching contacts \(error)")
-                }
+        do {
+            let request = CNContactFetchRequest(keysToFetch: self.keysToFetch)
+            try self.contactStore.enumerateContacts(with: request) { contact, stop in
+                self.addToListOfContacts(contact: contact)
             }
-            if let error = error {
-                call.reject("Access Denied: \(error.localizedDescription)")
-            }
+            call.success([
+                "contacts": contacts
+            ])
+        } catch {
+            call.reject("Error fetching contacts \(error)")
         }
     }
     
     @objc func getFilteredContacts(_ call: CAPPluginCall) {
+        let predicate = getPredicate(from: call)
+        do {
+            let data = try contactStore.unifiedContacts(matching: predicate, keysToFetch: keysToFetch)
+            for contact in data {
+                addToListOfContacts(contact: contact)
+            }
+            call.success([
+                "contacts": contacts
+            ])
+        } catch {
+            call.reject("Error fetching contacts: \(error)")
+        }
+    }
+    
+    @objc func requestAccess(_ call: CAPPluginCall) {
         contactStore.requestAccess(for: .contacts) { granted, error in
             if granted {
-                let predicate = self.getPredicate(from: call)
-                do {
-                    let data = try self.contactStore.unifiedContacts(matching: predicate,
-                                                                     keysToFetch: self.keysToFetch)
-                    for contact in data {
-                        self.addToListOfContacts(contact: contact)
-                    }
-                    call.success([
-                        "contacts": self.contacts
-                    ])
-                } catch {
-                    call.reject("Error fetching contacts: \(error)")
-                }
+                call.success()
             }
             if let error = error {
-                call.reject("Access Denied: \(error.localizedDescription)")
+                call.reject(error.localizedDescription)
             }
         }
     }

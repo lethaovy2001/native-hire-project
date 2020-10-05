@@ -33,7 +33,7 @@ public class Contacts extends Plugin {
     }
 
     @PluginMethod()
-    public void isAuthorized(PluginCall call) {
+    public void requestAccess(PluginCall call) {
         if (!hasPermission(Manifest.permission.READ_CONTACTS) ||
                 !hasPermission(Manifest.permission.WRITE_CONTACTS)) {
             saveCall(call);
