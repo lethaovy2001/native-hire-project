@@ -12,8 +12,8 @@ export interface Contact {
 
 export const getContacts = async (): Promise<Contact[]> => {
   try {
-    let authorization = await Contacts.requestAccess();
-    console.log(authorization)
+    // let authorization = await Contacts.requestAccess();
+    // console.log(authorization)
     const result = await Contacts.getAll();
     //const result = await Contacts.getFilteredContacts({firstName: "Ap"})
     return result.contacts;
