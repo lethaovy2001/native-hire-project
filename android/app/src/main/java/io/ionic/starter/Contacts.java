@@ -2,10 +2,10 @@ package io.ionic.starter;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.provider.ContactsContract;
 import android.content.ContentResolver;
 import android.database.Cursor;
+import android.util.Log;
 
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
@@ -16,11 +16,6 @@ import com.getcapacitor.PluginMethod;
 
 import java.util.Arrays;
 import java.util.ArrayList;
-import android.util.Log;
-
-
-
-
 
 @NativePlugin(
         requestCodes = {Contacts.GET_ALL_REQUEST}
@@ -30,6 +25,16 @@ public class Contacts extends Plugin {
 
     @PluginMethod()
     public void getAll(PluginCall call) {
+        getContacts(call, "");
+    }
+
+    @PluginMethod()
+    public void getFilteredContacts(PluginCall call) {
+        String filter = "DISPLAY_NAME = '" + call.getString("firstName") + "'";
+        getContacts(call, filter);
+    }
+
+    protected void getContacts(PluginCall call, String filter) {
         if (!hasPermission(Manifest.permission.READ_CONTACTS) ||
                 !hasPermission(Manifest.permission.WRITE_CONTACTS)) {
             saveCall(call);
@@ -44,7 +49,7 @@ public class Contacts extends Plugin {
         Cursor cursor = contentResolver.query(
                 ContactsContract.Contacts.CONTENT_URI,
                 null,
-                null,
+                filter,
                 null,
                 null);
 
